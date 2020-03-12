@@ -6,7 +6,7 @@
  * @LastEditTime: 2019-11-04 13:40:50
  */
 
-import {type, deepCopy} from '@/utils/utils'
+import {type, deepCopy} from '../utils/utils'
 
 const {isObject, isFunction, isArray, isPromise} = type
 
@@ -156,7 +156,7 @@ class Dic {
   update(key) {
     const item = this.data && this.data[key]
     // 如果是远程数据调用请求更新数据
-    item && item.isRemote && item.upload()  
+    item && item.isRemote && item.update()  
     return this
   }
   
@@ -179,10 +179,4 @@ class Dic {
 
 }
 
-const Plugin = {}
-
-Plugin.install = (Vue, config) => {
-  Vue.prototype.$dic = creator(config)
-}
-
-export default Plugin
+export default creator

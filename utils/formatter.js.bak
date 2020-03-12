@@ -1,0 +1,172 @@
+/*
+ * @Description: 数据格式化工具
+ * @Author: clc
+ * @Date: 2019-09-25 10:29:05
+ * @LastEditors: clc
+ * @LastEditTime: 2019-09-30 14:00:32
+ */
+
+import {type, arr2Text, number2Wan, timeStampFormat, valueFixed} from '@/utils/utils'
+
+const {isArray, isObject, isFunction, isString} = type
+
+const inlineFormat = (value, key) => {
+  let reValue = value
+  // 数据标准化
+  switch(key) {
+
+    // 数组转字符串
+    case 'arr2Text':
+      reValue = isArray(value) ? arr2Text(value) : value
+      break
+      
+    // 时间处理
+    case 'timeStamp':
+      reValue = timeStampFormat(value)
+      break
+
+    // 数量转为万 
+    // .e.g 120000 - 12万
+    case 'number2Wan':
+      reValue = number2Wan(value)
+      break
+      
+  }
+
+  return reValue
+}
+
+/** 
+ * 创建并返回一个格式化数据的方法
+ * 该方法接受一个数组对象或者对象作为参数, 返回格式化后的数据
+ */
+
+const dataFormatter = (options = {}) => {
+
+  // 默认配置
+  const config = {
+    //
+    // 健名对应的处理方法, 值可以是一个字符串(已有的处理器)或者function 
+    // 值为false的话会跳过改字段
+    // 
+    // 多个健名对应同一处理器可以用逗号分隔 
+    // .e.g.
+    // formatMap: {
+    //   'price,fans': 'number2wan',
+    //   'date,updateDate,createDate': 'timeStampFormat',
+    //   'age': val => val === 1 '男' : '女',
+    //   'uid': false
+    // }
+    //  
+    formatMap: {},
+    
+    // 除了内置的方法, 也可以自定义格式化方法
+    // 自定义方法有更高的优先级
+    // .e.g.
+    // cusFormat: {
+    //   preFixed: val => `机构名称-${val}` 
+    // }
+    // 然后你可以这样写 formatMap
+    // formatMap: {
+    //   'name,longName,shortName,companyName': 'preFixed' 
+    // }
+    cusFormat: {},
+    
+    // 格式化之前的处理方法
+    // 可以设置为 false 或者自定义 function
+    beforeFormat: v => v,
+    
+    // 格式化之后的处理方法
+    // 可以设置为 false 或者自定义 function
+    afterFormat: v => valueFixed(v)
+    
+  }
+
+  // 合并配置
+  isObject(options) && Object.assign(config, options)
+
+  // 解析健名对应的格式化方法
+  const formatterMap = {}
+  const formatMap = config.formatMap
+  isObject(formatMap) && Object.keys(formatMap).forEach(keyString => {
+    const formatFn = formatMap[keyString]
+    const keyArr = keyString.split(',')
+    keyArr.forEach(key => formatterMap[key] = formatFn)
+  })
+  
+  const {beforeFormat, afterFormat, cusFormat} = config
+
+  // 格式化方法
+  const doFormat = (val, key, obj) => {
+    let reValue = val
+    
+    // key对应的处理器
+    let formatFn = formatterMap[key]
+
+    // 如果设置了false跳过
+    if(false === formatFn) {
+      return reValue
+    }
+
+    // 格式化前处理
+    if(isFunction(beforeFormat)) {
+      reValue = beforeFormat(val, key, obj)
+    } 
+    
+    // 处理器是一个 String
+    if(isString(formatFn)) {
+      // 从自定义的format找处理方法,
+      let cusFormatFn = cusFormat[formatFn]
+      if(isFunction(cusFormatFn)) {
+        reValue = cusFormatFn(reValue, key, obj)
+      } else {
+        // 内置方法处理
+        reValue = inlineFormat(reValue, formatFn)
+      }
+    } else if(isFunction(formatFn)) {
+      reValue = formatFn(reValue, key, obj)
+    }
+
+    // 格式化后的处理方法
+    if(isFunction(afterFormat)) {
+      reValue = afterFormat(reValue, key, obj)
+    }
+    
+    return reValue
+  }
+
+  // 格式化数组的方法
+  const formatArray = arr => {
+    const newArr = []
+    arr.forEach(item => {
+      if(isObject(item)) {
+        newArr.push(formatObject(item))
+      } else {
+        newArr.push(item)
+      }
+    })
+    return newArr
+  }
+
+  // 格式化 object 的数据
+  const formatObject = obj => {
+    let newObj = {}
+    Object.keys(obj).forEach( key => newObj[key] = doFormat(obj[key], key, obj) )
+    return newObj
+  }
+  
+  return (data, key, obj) => {
+    if(key && isString(key)) {
+      return doFormat(data, key, obj)
+    } else if(isArray(data)) {
+      return formatArray(data)
+    } else if(isObject(data)) {
+      return formatObject(data)
+    } else {
+      return data
+    }
+  }
+
+}
+
+export default dataFormatter

@@ -1,12 +1,14 @@
 ## 这是一个简易的字典工具  
 
-是一个解决应用程序共享字典的一个简易的工具, 它可以集中管理应用程序的字典, 并且在多个组件中复用。
+是一个解决应用程序共享字典的一个简易的工具   
+它可以集中管理应用程序的字典, 并且在多个组件中复用  
 
 ### used
 
 ```
 import dictionary from 'dictionary'
 
+// 配置的字典
 const config = {
   platform: [
     {label: '抖音', value: 0 },
@@ -28,6 +30,7 @@ const config = {
   }
 }
 
+
 const dic = dictionary(config)
 
 // find()
@@ -43,8 +46,8 @@ console.log(status[0]) //=> {value: 0, label: '待审核'}
 const statusValue = status.value() // => [{"value":0,"label":"待审核"},{"value":1,"label":"审核失败"},{"value":2,"label":"已审未导入"},{"value":3,"label":"已导"}
 
 
-// resolve()
-// 当find()返回数组可用
+// resolve(value, key = 'value')
+// 当find() 返回数组可用
 const statusResolve = status.resolve(1)
 console.log(statusResolve) // => {value: 1, label: '审核失败'}
 // 可以定义 resolve key 

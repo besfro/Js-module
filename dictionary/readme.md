@@ -3,7 +3,7 @@
 是一个解决应用程序共享字典的一个简易的工具   
 它可以集中管理应用程序的字典, 并且在多个组件中复用  
 
-### used
+## used
 
 ```
 import dictionary from 'dictionary'
@@ -61,3 +61,17 @@ status.resolve(4, 'custom') // => {custom: 4, label: '自定义'}
 ### remote
 
 ### update
+
+
+## Vue Plugin
+
+```
+import dic from 'dictionary'
+
+const Plugin = {}
+
+Plugin.install = (Vue, config) => {
+  Vue.prototype.$dic = dic(config)
+}
+
+```

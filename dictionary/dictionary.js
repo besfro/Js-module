@@ -6,7 +6,7 @@
  * @LastEditTime: 2019-11-04 13:40:50
  */
 
-import {type, deepCopy} from '../utils/utils'
+import {type, deepCopy} from '../utils/utils.js'
 
 const {isObject, isFunction, isArray, isPromise} = type
 
@@ -132,11 +132,11 @@ class Dic {
 
   }
   
-  add(key, value) {
+  add(value, key) {
     const data = this.data
-    if(isObject(data)) {
+    if(isObject(data) && value && key) {
       data[key] = value
-    } else if(isArray(data)) {
+    } else if(isArray(data) && value) {
       data.push(value)
     }
     return this
@@ -146,9 +146,6 @@ class Dic {
     const data = this.data
     if(isObject(data)) {
       data.hasOwnProperty(key) && delete data[key]
-    } else if(isArray(data)) {
-      const findIndex = data.indexOf(key)
-      findIndex && data.splice(findIndex, 1)
     }
     return this
   }
